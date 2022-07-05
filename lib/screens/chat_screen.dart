@@ -82,6 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       await _fireStore.collection('Messages').add({
                         'sender': loggedInUser.email,
                         'text': messageText,
+                        'createdAt': DateTime.now(),
                       });
                     },
                     icon: const Icon(Icons.send_rounded),
@@ -152,37 +153,39 @@ class MessagesStream extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _fireStore.collection('Messages').snapshots(),
+      stream: _fireStore
+          .collection('Messages')
+          .orderBy('createdAt', descending: true)
+          .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          final messages = snapshot.data!.docs.reversed;
-          List<MessageBubble> messageWidgets = [];
-
-          for (var element in messages) {
-            // this will give us access to map that is deep inside the snapshot
-            final messageText = element.data()['text'];
-            final messageSender = element.data()['sender'];
-
-            final messageBubble = MessageBubble(
-              isMe: messageSender == loggedInUser.email,
-              messageSender: messageSender,
-              messageText: messageText,
-            );
-            messageWidgets.add(messageBubble);
-          }
-
-          return Expanded(
-            child: ListView(
-              reverse: true,
-              padding: const EdgeInsets.all(10),
-              children: messageWidgets,
-            ),
-          );
-        } else {
+        if (!snapshot.hasData) {
           return const Center(
             child: CircularProgressIndicator(),
           );
         }
+        final messages = snapshot.data!.docs;
+        List<MessageBubble> messageWidgets = [];
+
+        for (var element in messages) {
+          // this will give us access to map that is deep inside the snapshot
+          final messageText = element.data()['text'];
+          final messageSender = element.data()['sender'];
+
+          final messageBubble = MessageBubble(
+            isMe: messageSender == loggedInUser.email,
+            messageSender: messageSender,
+            messageText: messageText,
+          );
+          messageWidgets.add(messageBubble);
+        }
+
+        return Expanded(
+          child: ListView(
+            reverse: true,
+            padding: const EdgeInsets.all(10),
+            children: messageWidgets,
+          ),
+        );
       },
     );
   }
