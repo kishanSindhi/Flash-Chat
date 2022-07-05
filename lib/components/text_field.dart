@@ -6,15 +6,18 @@ class RoundedTextBox extends StatelessWidget {
     required this.onChanged,
     required this.hintText,
     required this.obscureText,
+    required this.keyBoardType,
   }) : super(key: key);
 
   final Function(String) onChanged;
   final String hintText;
   final bool obscureText;
+  final TextInputType keyBoardType;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      keyboardType: keyBoardType,
       obscureText: obscureText,
       onChanged: onChanged,
       decoration: InputDecoration(
